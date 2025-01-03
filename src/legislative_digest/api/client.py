@@ -16,7 +16,7 @@ class CongressClient:
         }
         response = self.session.get(endpoint, params=params)
         response.raise_for_status()
-        return response.json()
+        return response.json() #actually returns a python dictionary, not a json
 
     def get_bill_details(self, congress, bill_type, bill_number):
         """Get detailed information for a specific bill."""
@@ -24,3 +24,15 @@ class CongressClient:
         response = self.session.get(endpoint, params={'format': 'json'})
         response.raise_for_status()
         return response.json()
+
+    def is_appropriation_bill(self, bill_type, title):
+        """Check if bill is an appropriations bill"""
+        return (bill_type in ['HR', 'S'] and
+            ('appropriation' in title.lower() or
+             'appropriations' in title.lower()))
+
+    def get_appropriation_bills(self, limit=20):
+        """Get recent appropriation bills"""
+        bills = self.get_recent_bills(limit=limit)
+        return [bill for bill in bills['bills']
+                if self.is_appropriation_bill(bill['type'], bill['title'])]
